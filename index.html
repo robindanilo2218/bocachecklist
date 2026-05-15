@@ -1,0 +1,435 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  CheckCircle2, 
+  Circle, 
+  ChevronDown, 
+  ChevronUp, 
+  Users, 
+  ListChecks, 
+  Info,
+  RefreshCcw,
+  Target,
+  Award,
+  BookOpen
+} from 'lucide-react';
+
+// --- DATOS DEL DOCUMENTO (Traducidos y estructurados) ---
+const BOCA_ROLES = [
+  {
+    role: "Promotor BOCA",
+    actor: "Secretario General o Presidente",
+    responsibilities: "Defiende BOCA, asegura la aprobación de la junta directiva y alinea BOCA con los objetivos estratégicos."
+  },
+  {
+    role: "Coordinador BOCA",
+    actor: "Punto Focal de Desarrollo Organizacional/Filiales en Sede Nacional (NHQ)",
+    responsibilities: "Lidera la implementación nacional, apoya a las filiales, gestiona informes y asegura fondos. Mantiene comunicación con el liderazgo, coordina departamentos, desarrolla los TdR, prepara la capacitación (ToF), consolida resultados y monitorea la implementación."
+  },
+  {
+    role: "Movilizador BOCA",
+    actor: "Director de Filial / Punto Focal BOCA en Filial",
+    responsibilities: "Gestiona la logística del taller BOCA, prepara a los participantes y asegura el seguimiento después del taller."
+  },
+  {
+    role: "Facilitador BOCA",
+    actor: "Persona capacitada a través del ToF de BOCA",
+    responsibilities: "Facilita los talleres BOCA, guía la priorización y la hoja de ruta. Prepara y envía el informe BOCA. Apoya en el monitoreo y seguimiento post-taller."
+  },
+  {
+    role: "Participante BOCA",
+    actor: "Junta directiva de la filial, personal, voluntarios, miembros",
+    responsibilities: "Participa activamente en el diálogo, la autorreflexión y la planificación conjunta. Comparte experiencias con sus pares en la filial para construir sentido de pertenencia."
+  },
+  {
+    role: "Entrenador BOCA",
+    actor: "Persona capacitada a través del ToT de BOCA (Formación de Formadores)",
+    responsibilities: "Lidera el ToF de BOCA, desarrolla la capacidad de los facilitadores. Actúa como embajador de Desarrollo de Filiales y asesora a la Sociedad Nacional."
+  }
+];
+
+const BOCA_PHASES = [
+  {
+    id: "phase-1",
+    title: "REFLEXIÓN INICIAL",
+    icon: <BookOpen className="w-5 h-5" />,
+    steps: [
+      {
+        id: 1,
+        title: "Paso 1. ¿Por qué el Desarrollo de la Filial?",
+        details: [
+          "¿Qué buscamos con nuestro proceso de Desarrollo de Filiales?",
+          "¿Por qué necesitamos trabajar en el Desarrollo de Filiales?",
+          "¿Cuáles son los problemas que intentamos resolver y cuál sería el enfoque correcto?",
+          "¿Cómo contribuiría una autorreflexión a nivel de filial a nuestros objetivos?",
+          "¿Sabemos qué queremos lograr y cómo usarán los resultados las filiales y la Sede Central (NHQ)?",
+          "¿Hemos hecho otras evaluaciones recientemente? (Para evitar duplicación de esfuerzos).",
+          "¿Creemos que BOCA es la herramienta que mejor puede apoyar estas expectativas?"
+        ]
+      },
+      {
+        id: 2,
+        title: "Paso 2. ¿Estamos listos para BOCA?",
+        details: [
+          "¿Tenemos una persona focal designada que pueda facilitar la reflexión?",
+          "¿Tenemos los recursos financieros y humanos necesarios para ejecutar BOCA y dar seguimiento?",
+          "¿Tenemos un enfoque claro de implementación? (¿Empezar con algunas filiales o con todas?)",
+          "¿Sabemos cómo comunicar claramente el propósito a las filiales?",
+          "¿Es el momento adecuado? (¿Estamos en medio de una emergencia? ¿Están las filiales ya implementando otros planes?)"
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase-2",
+    title: "PREPARACIÓN INICIAL",
+    icon: <Target className="w-5 h-5" />,
+    steps: [
+      {
+        id: 3,
+        title: "Paso 3. Inicio: Roles y Responsabilidades",
+        details: [
+          "Nombrar al Coordinador BOCA para iniciar la preparación.",
+          "Contactar a la oficina regional de IFRC más cercana para obtener apoyo técnico si es necesario.",
+          "Considerar buscar apoyo de una Sociedad Nacional par con experiencia en BOCA."
+        ]
+      },
+      {
+        id: 4,
+        title: "Paso 4. Identificar el enfoque y selección de filiales",
+        details: [
+          "Desarrollar los Términos de Referencia (TdR) para el proceso.",
+          "Decidir si BOCA se hará en todas las filiales o se seleccionarán algunas para empezar.",
+          "Decidir si BOCA será opcional para las filiales, dependiendo de la estructura organizativa.",
+          "Planificar la estrategia de comunicación para las filiales."
+        ]
+      },
+      {
+        id: 5,
+        title: "Paso 5. Identificar recursos y desarrollar presupuesto",
+        details: [
+          "Presupuestar la Capacitación de Facilitadores (ToF) (2 días presenciales).",
+          "Presupuestar los talleres BOCA en las filiales (1.5 - 2 días por taller).",
+          "Considerar un fondo semilla para apoyar la implementación de las hojas de ruta de las filiales.",
+          "Considerar costos para eventos de intercambio entre pares (Foros BOCA).",
+          "Costos adicionales de monitoreo y seguimiento."
+        ]
+      },
+      {
+        id: 6,
+        title: "Paso 6. Orientación y Preparación Previa",
+        details: [
+          "Orientar a las filiales sobre el propósito, proceso y expectativas (incluyendo junta, personal y voluntarios).",
+          "Enviar una carta del liderazgo de la Sociedad Nacional presentando BOCA.",
+          "Asegurar a las filiales que BOCA no es una auditoría, sino una herramienta de autorreflexión.",
+          "Promover los planes de Desarrollo de Filiales en eventos nacionales (Asamblea General)."
+        ]
+      },
+      {
+        id: 7,
+        title: "Paso 7. Adaptación y Traducción",
+        details: [
+          "Formar un pequeño equipo de revisión con conocimiento profundo de las filiales.",
+          "Ajustar la terminología para que coincida con el lenguaje interno de su Sociedad Nacional.",
+          "Reflejar estrategias y políticas nacionales en los atributos, y eliminar las que no existan.",
+          "Eliminar referencias a 'personal' si las filiales operan solo con voluntarios.",
+          "Mantener intacta la estructura central y el sistema de puntuación para permitir comparaciones globales."
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase-3",
+    title: "FORMACIÓN DEL EQUIPO",
+    icon: <Users className="w-5 h-5" />,
+    steps: [
+      {
+        id: 8,
+        title: "Paso 8. Identificar un equipo de facilitadores",
+        details: [
+          "Seleccionar personas con buen entendimiento de la Sociedad Nacional y habilidades de facilitación.",
+          "Establecer un grupo diverso (personal y voluntarios/miembros de junta).",
+          "Configurar plataformas (WhatsApp, Teams) para el intercambio entre facilitadores."
+        ]
+      },
+      {
+        id: 9,
+        title: "Paso 9. Capacitación de Facilitadores (ToF)",
+        details: [
+          "Entrenamiento práctico de 2 días sobre la metodología BOCA y reportes.",
+          "Debe ser conducido por un Entrenador BOCA capacitado por IFRC.",
+          "Asegurar que no haya mucha brecha de tiempo entre la capacitación y sus primeras asignaciones."
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase-4",
+    title: "IMPLEMENTACIÓN (ROLL-OUT)",
+    icon: <ListChecks className="w-5 h-5" />,
+    steps: [
+      {
+        id: 10,
+        title: "Paso 10. Talleres BOCA",
+        details: [
+          "Organizar talleres de 1.5 a 2 días en las filiales con 8-15 participantes.",
+          "Estructura estándar: Rompecabezas BOCA, Diálogo sobre matriz, Priorización y Hoja de ruta.",
+          "Después del taller: El facilitador finaliza y envía el informe BOCA.",
+          "La filial revisa la hoja de ruta, asigna roles, presupuesto y fuentes de financiamiento."
+        ]
+      },
+      {
+        id: 11,
+        title: "Paso 11. Monitoreo y Seguimiento",
+        details: [
+          "Realizar reuniones periódicas con los Movilizadores BOCA.",
+          "Incluir el desarrollo de filiales en los informes regulares.",
+          "Facilitar reuniones de balance para discutir avances y desafíos.",
+          "El Movilizador BOCA en la filial debe revisar continuamente el plan con su equipo."
+        ]
+      },
+      {
+        id: 12,
+        title: "Paso 12. Análisis de resultados",
+        details: [
+          "El Coordinador BOCA y la Sede Central deben analizar los resultados consolidados.",
+          "Identificar tendencias o desafíos compartidos por varias filiales.",
+          "Usar este análisis para fortalecer el enfoque de apoyo a las filiales a nivel nacional."
+        ]
+      }
+    ]
+  },
+  {
+    id: "phase-5",
+    title: "RECONOCIMIENTO E INSPIRACIÓN",
+    icon: <Award className="w-5 h-5" />,
+    steps: [
+      {
+        id: 13,
+        title: "Paso 13. Celebrar logros",
+        details: [
+          "Reconocer los esfuerzos de las filiales por priorizar su desarrollo.",
+          "Desarrollar un sistema de reconocimiento (certificados, destacando historias).",
+          "Usar canales de comunicación internos (intranet, grupos) para celebrar esfuerzos."
+        ]
+      },
+      {
+        id: 14,
+        title: "Paso 14. Apoyo entre pares y mantener motivación",
+        details: [
+          "Conectar a las filiales entre sí para apoyo y mentoría.",
+          "Interactuar con otras Sociedades Nacionales que están implementando BOCA.",
+          "Usar la Comunidad de Práctica de Desarrollo de Filiales de IFRC para fomentar el intercambio."
+        ]
+      }
+    ]
+  }
+];
+
+export default function BocaApp() {
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [activeTab, setActiveTab] = useState('checklist');
+  const [expandedStep, setExpandedStep] = useState(null);
+
+  // Cargar estado guardado al iniciar
+  useEffect(() => {
+    const saved = localStorage.getItem('boca-progress');
+    if (saved) {
+      setCompletedSteps(JSON.parse(saved));
+    }
+  }, []);
+
+  // Guardar estado al cambiar
+  useEffect(() => {
+    localStorage.setItem('boca-progress', JSON.stringify(completedSteps));
+  }, [completedSteps]);
+
+  const toggleStep = (stepId) => {
+    setCompletedSteps(prev => 
+      prev.includes(stepId) 
+        ? prev.filter(id => id !== stepId)
+        : [...prev, stepId]
+    );
+  };
+
+  const calculateProgress = () => {
+    const totalSteps = 14;
+    return Math.round((completedSteps.length / totalSteps) * 100);
+  };
+
+  const resetProgress = () => {
+    if(window.confirm("¿Estás seguro de que deseas reiniciar todo el progreso?")) {
+      setCompletedSteps([]);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      {/* HEADER */}
+      <header className="bg-red-600 text-white shadow-md sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Target className="w-6 h-6" />
+              BOCA 2.0 Tracker
+            </h1>
+            <p className="text-red-100 text-sm mt-1">Desbloqueando el potencial de las filiales</p>
+          </div>
+          
+          <nav className="flex bg-red-700 p-1 rounded-lg">
+            <button 
+              onClick={() => setActiveTab('checklist')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'checklist' ? 'bg-white text-red-600' : 'text-white hover:bg-red-500'}`}
+            >
+              <ListChecks className="w-4 h-4 inline mr-2" />
+              Checklist
+            </button>
+            <button 
+              onClick={() => setActiveTab('roles')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'roles' ? 'bg-white text-red-600' : 'text-white hover:bg-red-500'}`}
+            >
+              <Users className="w-4 h-4 inline mr-2" />
+              Roles
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        
+        {/* BARRA DE PROGRESO */}
+        {activeTab === 'checklist' && (
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+            <div className="flex justify-between items-end mb-2">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Progreso de Implementación</h2>
+                <p className="text-sm text-gray-500">{completedSteps.length} de 14 pasos completados</p>
+              </div>
+              <span className="text-2xl font-bold text-red-600">{calculateProgress()}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                className="bg-red-600 h-3 rounded-full transition-all duration-500" 
+                style={{ width: `${calculateProgress()}%` }}
+              ></div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button 
+                onClick={resetProgress}
+                className="text-xs flex items-center gap-1 text-gray-400 hover:text-red-500 transition-colors"
+              >
+                <RefreshCcw className="w-3 h-3" /> Reiniciar Progreso
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* CONTENIDO PRINCIPAL */}
+        {activeTab === 'checklist' ? (
+          <div className="space-y-8">
+            {BOCA_PHASES.map((phase) => (
+              <div key={phase.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center gap-3">
+                  <div className="text-red-600 bg-red-100 p-2 rounded-lg">
+                    {phase.icon}
+                  </div>
+                  <h3 className="font-bold text-gray-800 tracking-wide">{phase.title}</h3>
+                </div>
+                
+                <div className="divide-y divide-gray-100">
+                  {phase.steps.map((step) => {
+                    const isCompleted = completedSteps.includes(step.id);
+                    const isExpanded = expandedStep === step.id;
+
+                    return (
+                      <div key={step.id} className={`transition-colors ${isCompleted ? 'bg-red-50/30' : 'hover:bg-gray-50'}`}>
+                        <div className="px-6 py-4 flex items-start gap-4">
+                          <button 
+                            onClick={() => toggleStep(step.id)}
+                            className={`mt-0.5 flex-shrink-0 focus:outline-none transition-colors ${isCompleted ? 'text-red-600' : 'text-gray-300 hover:text-red-400'}`}
+                          >
+                            {isCompleted ? <CheckCircle2 className="w-7 h-7" /> : <Circle className="w-7 h-7" />}
+                          </button>
+                          
+                          <div className="flex-1 cursor-pointer" onClick={() => setExpandedStep(isExpanded ? null : step.id)}>
+                            <div className="flex justify-between items-center">
+                              <h4 className={`font-medium text-lg ${isCompleted ? 'text-gray-900 line-through decoration-red-300 decoration-2' : 'text-gray-800'}`}>
+                                {step.title}
+                              </h4>
+                              <button className="text-gray-400 hover:text-gray-600 p-1">
+                                {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                              </button>
+                            </div>
+                            
+                            {!isExpanded && (
+                              <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                                {step.details[0]}...
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* DETALLES EXPANDIDOS */}
+                        {isExpanded && (
+                          <div className="px-6 pb-5 pt-1 ml-11 pl-4 border-l-2 border-red-100">
+                            <ul className="space-y-2">
+                              {step.details.map((detail, idx) => (
+                                <li key={idx} className="text-gray-600 text-sm flex items-start gap-2">
+                                  <span className="text-red-400 mt-1.5 text-[10px]">■</span>
+                                  <span>{detail}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="mt-4 flex gap-2">
+                               <button 
+                                  onClick={() => toggleStep(step.id)}
+                                  className={`text-sm px-4 py-1.5 rounded border font-medium transition-colors ${isCompleted ? 'border-gray-300 text-gray-600 hover:bg-gray-50' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
+                               >
+                                 {isCompleted ? 'Desmarcar paso' : 'Marcar como completado'}
+                               </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* VISTA DE ROLES */
+          <div className="space-y-6">
+            <div className="bg-red-50 border border-red-100 rounded-xl p-6 mb-6 flex gap-4">
+              <Info className="w-6 h-6 text-red-600 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-red-800 mb-1">¿Quién es quién en BOCA?</h3>
+                <p className="text-sm text-red-900/80">
+                  El proceso BOCA requiere la colaboración de diferentes actores en todos los niveles de la Sociedad Nacional. Aquí están los roles clave definidos para garantizar el éxito.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {BOCA_ROLES.map((role, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-red-500" />
+                    {role.role}
+                  </h3>
+                  <div className="mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Actor Potencial:</span>
+                    <p className="font-medium text-red-700">{role.actor}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Responsabilidades Clave:</span>
+                    <p className="text-gray-600 text-sm mt-1">{role.responsibilities}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
